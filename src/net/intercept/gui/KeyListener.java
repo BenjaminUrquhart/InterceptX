@@ -18,9 +18,10 @@ public class KeyListener implements java.awt.event.KeyListener{
 
 	@Override
 	public void keyPressed(KeyEvent e) {
+		System.out.print(e.getKeyCode() + " ");
 		switch(e.getKeyCode()) {
-		case KeyEvent.VK_LEFT: drawer.decrementPos();
-		case KeyEvent.VK_RIGHT: drawer.incrementPos();
+		case 37: drawer.decrementPos();
+		case 39: drawer.incrementPos();
 		}
 	}
 
