@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +19,7 @@ public class Drawer extends Canvas{
 	private ScheduledExecutorService blinker;
 	
 	private volatile StringBuilder buffer;
+	private volatile ArrayList<String> history;
 	
 	private volatile int cursorPos;
 	private volatile boolean cursor;
@@ -27,6 +29,7 @@ public class Drawer extends Canvas{
 		this.addKeyListener(new KeyListener(this));
 		this.repaint();
 		this.buffer = new StringBuilder();
+		this.history = new ArrayList<>();
 		this.cursorPos = 0;
 		this.window = window;
 		this.blinker = Executors.newScheduledThreadPool(5);
@@ -47,36 +50,63 @@ public class Drawer extends Canvas{
 		if(c == 8) {
 			delete();
 		}
+		else if(c == 10) {
+			if(buffer.toString().trim().equals("quit")) {
+				System.exit(0);
+			}
+			if(buffer.length() != 0) {
+				history.add(">> " + buffer);
+				buffer.delete(0, buffer.length());
+				cursorPos = 0;
+			}
+		}
 		else {
-			buffer.append(c);
+			buffer.insert(cursorPos, c);
 			incrementPos();
 		}
+		System.out.println(buffer);
 		cursor = true;
 		this.repaint();
 	}
 	//broken for now
 	protected void delete() {
 		if(buffer.length() <= 0) return;
-		buffer.deleteCharAt(cursorPos - 1);
-		this.cursorPos--;
+		if(cursorPos > buffer.length()) {
+			cursorPos = buffer.length();
+		}
+		if(cursorPos > 0) {
+			buffer.deleteCharAt(cursorPos - 1);
+		}
+		this.decrementPos();
 		this.repaint();
 	}
 	protected void incrementPos() {
 		this.cursorPos++;
+		if(cursorPos > buffer.length()) {
+			cursorPos = buffer.length();
+		}
+		cursor = true;
+		this.repaint();
 	}
 	protected void decrementPos() {
 		this.cursorPos--;
 		if(cursorPos < 0) cursorPos = 0;
+		cursor = true;
+		this.repaint();
 	}
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
 		g.setFont(font);
-		System.out.println(buffer);
 		g.setColor(Color.GREEN);
-		g.drawString(buffer.toString(), 0, window.getHeight() - 50);
+		int i = history.size();
+		for(String s : history) {
+			g.drawString(s, 0, window.getHeight() - 37*(i+1));
+			i--;
+		}
+		g.drawString(">> " + buffer.toString(), 0, window.getHeight() - 50);
 		if(cursor) {
-			g.fillRect(cursorPos*12, window.getHeight() - 65, 12, 20);
+			g.fillRect(cursorPos*12 + 36, window.getHeight() - 65, 12, 20);
 		}
 	}
 }
