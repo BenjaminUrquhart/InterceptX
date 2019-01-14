@@ -21,7 +21,9 @@ public class KeyListener implements java.awt.event.KeyListener{
 		System.out.print(e.getKeyCode() + " ");
 		switch(e.getKeyCode()) {
 		case 37: drawer.decrementPos(); break;
+		case 38: drawer.historyUp(); break;
 		case 39: drawer.incrementPos(); break;
+		case 40: drawer.historyDown(); break;
 		}
 	}
 

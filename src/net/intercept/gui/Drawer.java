@@ -19,9 +19,9 @@ public class Drawer extends Canvas{
 	private ScheduledExecutorService blinker;
 	
 	private volatile StringBuilder buffer;
-	private volatile ArrayList<String> history;
+	private volatile ArrayList<String> history, windowBuff;
 	
-	private volatile int cursorPos;
+	private volatile int cursorPos, historyPos;
 	private volatile boolean cursor;
 
 	protected Drawer(Window window) {
@@ -30,7 +30,9 @@ public class Drawer extends Canvas{
 		this.repaint();
 		this.buffer = new StringBuilder();
 		this.history = new ArrayList<>();
+		this.windowBuff = new ArrayList<>();
 		this.cursorPos = 0;
+		this.historyPos = 0;
 		this.window = window;
 		this.blinker = Executors.newScheduledThreadPool(5);
 		this.cursor = false;
@@ -55,9 +57,11 @@ public class Drawer extends Canvas{
 				System.exit(0);
 			}
 			if(buffer.length() != 0) {
-				history.add(">> " + buffer);
+				history.add(buffer.toString());
+				windowBuff.add(">> " + buffer);
 				buffer.delete(0, buffer.length());
 				cursorPos = 0;
+				historyPos = 0;
 			}
 		}
 		else {
@@ -94,13 +98,32 @@ public class Drawer extends Canvas{
 		cursor = true;
 		this.repaint();
 	}
+	protected void historyUp() {
+		if(historyPos < history.size()) {
+			historyPos++;
+			buffer = new StringBuilder(history.get(history.size() - historyPos));
+		}
+		cursorPos = buffer.length();
+		this.repaint();
+	}
+	protected void historyDown() {
+		if(historyPos > 0) {
+			buffer = new StringBuilder(history.get(history.size() - historyPos));
+			historyPos--;
+		}
+		else {
+			buffer = new StringBuilder();
+		}
+		cursorPos = buffer.length();
+		this.repaint();
+	}
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
 		g.setFont(font);
 		g.setColor(Color.GREEN);
-		int i = history.size();
-		for(String s : history) {
+		int i = windowBuff.size();
+		for(String s : windowBuff) {
 			g.drawString(s, 0, window.getHeight() - 37*(i+1));
 			i--;
 		}
