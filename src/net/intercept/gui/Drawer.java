@@ -51,6 +51,7 @@ public class Drawer extends Canvas{
 			e.printStackTrace();
 		}
 		this.blinker.scheduleWithFixedDelay(() -> {
+			Thread.currentThread().setName("InterceptX Cursor");
 			cursor = !cursor;
 			this.repaint();
 		}, 0, 750, TimeUnit.MILLISECONDS);
@@ -136,12 +137,17 @@ public class Drawer extends Canvas{
 		//this.repaint();
 	}
 	protected void appendToBuff(char c) {
+		if(windowBuff.isEmpty()) {
+			windowBuff.add("");
+		}
 		if(c == 10) {
-			appendToBuff(input.toString());
+			//appendToBuff(input.toString());
+			windowBuff.add("");
 			input = new StringBuilder();
 		}
 		else {
 			input.append(c);
+			windowBuff.set(windowBuff.size() - 1, input.toString());
 		}
 	}
 	protected InputStream getSTDIN() {

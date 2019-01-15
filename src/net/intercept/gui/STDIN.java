@@ -7,7 +7,7 @@ import java.util.List;
 
 public class STDIN extends InputStream{
 
-	private List<Character> buffer;
+	private volatile List<Character> buffer;
 	
 	protected STDIN() {
 		this.buffer = new ArrayList<>();
@@ -15,7 +15,12 @@ public class STDIN extends InputStream{
 	@Override
 	public int read() throws IOException {
 		synchronized(this) {
-			while(buffer.isEmpty()) {}
+			while(buffer.isEmpty()) {
+				try {
+					Thread.sleep(100);
+				}
+				catch(InterruptedException e) {}
+			}
 			return buffer.remove(0);
 		}
 	}
@@ -26,6 +31,7 @@ public class STDIN extends InputStream{
 	
 	protected void write(char c) {
 		synchronized(this) {
+			System.err.print(c);
 			buffer.add(c);
 		}
 	}
