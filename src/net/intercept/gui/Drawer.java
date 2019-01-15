@@ -67,7 +67,8 @@ public class Drawer extends Canvas{
 				System.exit(0);
 			}
 			if(buffer.length() != 0) {
-				stdin.write(c);
+				buffer.chars().forEach((character) -> stdin.write((char)character));
+				stdin.write("\n".charAt(0));
 				history.add(buffer.toString());
 				windowBuff.add(">> " + buffer);
 				buffer.delete(0, buffer.length());
@@ -76,7 +77,6 @@ public class Drawer extends Canvas{
 			}
 		}
 		else {
-			stdin.write(c);
 			buffer.insert(cursorPos, c);
 			incrementPos();
 		}

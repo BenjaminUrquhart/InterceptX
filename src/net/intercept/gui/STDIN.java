@@ -14,15 +14,8 @@ public class STDIN extends InputStream{
 	}
 	@Override
 	public int read() throws IOException {
-		synchronized(this) {
-			while(buffer.isEmpty()) {
-				try {
-					Thread.sleep(100);
-				}
-				catch(InterruptedException e) {}
-			}
-			return buffer.remove(0);
-		}
+		while(buffer.isEmpty()) {}
+		return buffer.remove(0);
 	}
 	@Override
 	public int available() {
@@ -30,9 +23,6 @@ public class STDIN extends InputStream{
 	}
 	
 	protected void write(char c) {
-		synchronized(this) {
-			System.err.print(c);
-			buffer.add(c);
-		}
+		buffer.add(c);
 	}
 }

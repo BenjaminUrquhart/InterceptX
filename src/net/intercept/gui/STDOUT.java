@@ -12,6 +12,7 @@ public class STDOUT extends OutputStream{
 	}
 	@Override
 	public void write(int b) throws IOException {
+		System.err.print((char)b);
 		drawer.appendToBuff((char)b);
 	}
 
