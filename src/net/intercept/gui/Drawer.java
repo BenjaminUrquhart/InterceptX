@@ -133,11 +133,12 @@ public class Drawer extends Canvas{
 	}
 	protected void appendToBuff(String s) {
 		windowBuff.add(s);
-		this.repaint();
+		//this.repaint();
 	}
 	protected void appendToBuff(char c) {
 		if(c == 10) {
 			appendToBuff(input.toString());
+			input = new StringBuilder();
 		}
 		else {
 			input.append(c);
