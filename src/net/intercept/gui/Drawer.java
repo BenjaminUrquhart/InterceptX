@@ -136,7 +136,7 @@ public class Drawer extends Canvas{
 		windowBuff.add(s);
 		//this.repaint();
 	}
-	protected void appendToBuff(char c) {
+	protected synchronized void appendToBuff(char c) {
 		if(windowBuff.isEmpty()) {
 			windowBuff.add("");
 		}
