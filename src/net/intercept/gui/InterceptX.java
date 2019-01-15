@@ -1,10 +1,13 @@
 package net.intercept.gui;
 
-public class InterceptX {
+import java.io.InputStream;
 
-	private static Window window;
+public class InterceptX {
 	
+	public static InputStream enable() {
+		return new Window().getSTDIN();
+	}
 	public static void main(String[] args) {
-		window = new Window();
+		enable();
 	}
 }

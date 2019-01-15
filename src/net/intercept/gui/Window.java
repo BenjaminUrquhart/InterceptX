@@ -1,15 +1,15 @@
 package net.intercept.gui;
 
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.io.InputStream;
 
 import javax.swing.JFrame;
 
 @SuppressWarnings("serial")
 public class Window extends JFrame {
 
-	private Canvas canvas;
+	private Drawer canvas;
 	
 	public void paint(Graphics g) {
 		canvas.paint(g);
@@ -26,5 +26,8 @@ public class Window extends JFrame {
 		this.setVisible(true);
 		this.requestFocus();
 		this.repaint();
+	}
+	protected InputStream getSTDIN() {
+		return canvas.getSTDIN();
 	}
 }

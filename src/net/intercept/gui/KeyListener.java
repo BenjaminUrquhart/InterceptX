@@ -12,16 +12,18 @@ public class KeyListener implements java.awt.event.KeyListener{
 	@Override
 	public void keyTyped(KeyEvent e) {
 		char c = e.getKeyChar();
-		System.out.print((int)c + " ");
+		System.err.print((int)c + " ");
 		drawer.append(c);
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		System.out.print(e.getKeyCode() + " ");
+		System.err.print(e.getKeyCode() + " ");
 		switch(e.getKeyCode()) {
 		case 37: drawer.decrementPos(); break;
+		case 38: drawer.historyUp(); break;
 		case 39: drawer.incrementPos(); break;
+		case 40: drawer.historyDown(); break;
 		}
 	}
 

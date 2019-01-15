@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.io.File;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,10 +20,13 @@ public class Drawer extends Canvas{
 	
 	private ScheduledExecutorService blinker;
 	
-	private volatile StringBuilder buffer;
-	private volatile ArrayList<String> history;
+	private volatile StringBuilder buffer, temp, input;
+	private volatile ArrayList<String> history, windowBuff;
 	
-	private volatile int cursorPos;
+	private volatile STDIN stdin;
+	private volatile STDOUT stdout;
+	
+	private volatile int cursorPos, historyPos;
 	private volatile boolean cursor;
 
 	protected Drawer(Window window) {
@@ -29,8 +34,13 @@ public class Drawer extends Canvas{
 		this.addKeyListener(new KeyListener(this));
 		this.repaint();
 		this.buffer = new StringBuilder();
+		this.input = new StringBuilder();
 		this.history = new ArrayList<>();
+		this.windowBuff = new ArrayList<>();
+		this.stdin = new STDIN();
+		this.stdout = new STDOUT(this);
 		this.cursorPos = 0;
+		this.historyPos = 0;
 		this.window = window;
 		this.blinker = Executors.newScheduledThreadPool(5);
 		this.cursor = false;
@@ -44,9 +54,10 @@ public class Drawer extends Canvas{
 			cursor = !cursor;
 			this.repaint();
 		}, 0, 750, TimeUnit.MILLISECONDS);
+		System.setOut(new PrintStream(stdout));
 	}
 	protected void append(char c) {
-		//System.out.println(c);
+		//System.err.println(c);
 		if(c == 8) {
 			delete();
 		}
@@ -55,20 +66,23 @@ public class Drawer extends Canvas{
 				System.exit(0);
 			}
 			if(buffer.length() != 0) {
-				history.add(">> " + buffer);
+				stdin.write(c);
+				history.add(buffer.toString());
+				windowBuff.add(">> " + buffer);
 				buffer.delete(0, buffer.length());
 				cursorPos = 0;
+				historyPos = 0;
 			}
 		}
 		else {
+			stdin.write(c);
 			buffer.insert(cursorPos, c);
 			incrementPos();
 		}
-		System.out.println(buffer);
+		System.err.println(buffer);
 		cursor = true;
 		this.repaint();
 	}
-	//broken for now
 	protected void delete() {
 		if(buffer.length() <= 0) return;
 		if(cursorPos > buffer.length()) {
@@ -94,13 +108,51 @@ public class Drawer extends Canvas{
 		cursor = true;
 		this.repaint();
 	}
+	protected void historyUp() {
+		if(historyPos == 0) {
+			temp = buffer;
+		}
+		if(historyPos < history.size()) {
+			historyPos++;
+			buffer = new StringBuilder(history.get(history.size() - historyPos));
+		}
+		cursorPos = buffer.length();
+		this.repaint();
+	}
+	protected void historyDown() {
+		if(historyPos > 0) {
+			buffer = new StringBuilder(history.get(history.size() - historyPos));
+			historyPos--;
+		}
+		else if(historyPos == 0 && temp != null){
+			buffer = temp;
+			temp = null;
+		}
+		cursorPos = buffer.length();
+		this.repaint();
+	}
+	protected void appendToBuff(String s) {
+		windowBuff.add(s);
+		this.repaint();
+	}
+	protected void appendToBuff(char c) {
+		if(c == 10) {
+			appendToBuff(input.toString());
+		}
+		else {
+			input.append(c);
+		}
+	}
+	protected InputStream getSTDIN() {
+		return stdin;
+	}
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
 		g.setFont(font);
 		g.setColor(Color.GREEN);
-		int i = history.size();
-		for(String s : history) {
+		int i = windowBuff.size();
+		for(String s : windowBuff) {
 			g.drawString(s, 0, window.getHeight() - 37*(i+1));
 			i--;
 		}
