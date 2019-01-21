@@ -1,28 +1,21 @@
 package net.intercept.gui;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
-public class STDIN extends InputStream{
+public class STDIN {
 
-	private volatile List<Character> buffer;
+	private volatile List<String> next;
 	
 	protected STDIN() {
-		this.buffer = new ArrayList<>();
+		this.next = Collections.synchronizedList(new ArrayList<>());
 	}
-	@Override
-	public int read() throws IOException {
-		while(buffer.isEmpty()) {}
-		return buffer.remove(0);
+	public String nextLine() {
+		while(next.isEmpty()) {}
+		return next.remove(0);
 	}
-	@Override
-	public int available() {
-		return buffer.size();
-	}
-	
-	protected void write(char c) {
-		buffer.add(c);
+	protected void write(String s) {
+		next.add(s);
 	}
 }

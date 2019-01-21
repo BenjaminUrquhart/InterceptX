@@ -5,9 +5,10 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.io.File;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,13 +22,13 @@ public class Drawer extends Canvas{
 	private ScheduledExecutorService blinker;
 	
 	private volatile StringBuilder buffer, temp, input;
-	private volatile ArrayList<String> history, windowBuff;
+	private List<String> history, windowBuff;
 	
-	private volatile STDIN stdin;
-	private volatile STDOUT stdout;
+	private STDIN stdin;
+	private STDOUT stdout;
 	
 	private volatile int cursorPos, historyPos;
-	private volatile boolean cursor;
+	private volatile boolean cursor, password;
 
 	protected Drawer(Window window) {
 		this.setBackground(Color.BLACK);
@@ -36,7 +37,7 @@ public class Drawer extends Canvas{
 		this.buffer = new StringBuilder();
 		this.input = new StringBuilder();
 		this.history = new ArrayList<>();
-		this.windowBuff = new ArrayList<>();
+		this.windowBuff = Collections.synchronizedList(new ArrayList<>());
 		this.stdin = new STDIN();
 		this.stdout = new STDOUT(this);
 		this.cursorPos = 0;
@@ -67,11 +68,15 @@ public class Drawer extends Canvas{
 				System.exit(0);
 			}
 			if(buffer.length() != 0) {
-				buffer.chars().forEach((character) -> stdin.write((char)character));
-				stdin.write("\n".charAt(0));
-				history.add(buffer.toString());
-				windowBuff.add(">> " + buffer);
+				this.appendToBuff('\n');
+				stdin.write(buffer.toString());
+				history.add(bufferNoPass());
+				windowBuff.add(">> " + bufferNoPass());
+				if(buffer.toString().equals("clear")) {
+					windowBuff.clear();
+				}
 				buffer.delete(0, buffer.length());
+				password = false;
 				cursorPos = 0;
 				historyPos = 0;
 			}
@@ -137,33 +142,37 @@ public class Drawer extends Canvas{
 		//this.repaint();
 	}
 	protected synchronized void appendToBuff(char c) {
-		if(windowBuff.isEmpty()) {
-			windowBuff.add("");
-		}
 		if(c == 10) {
-			//appendToBuff(input.toString());
-			windowBuff.add("");
+			this.appendToBuff(input.toString());
 			input = new StringBuilder();
 		}
 		else {
 			input.append(c);
-			windowBuff.set(windowBuff.size() - 1, input.toString());
+		}
+		if(input.toString().contains("Password")) {
+			password = true;
 		}
 	}
-	protected InputStream getSTDIN() {
+	protected STDIN getSTDIN() {
 		return stdin;
+	}
+	private String bufferNoPass() {
+		return (password || input.toString().contains("Password") ? buffer.toString().chars().mapToObj((c) -> "*").reduce("",(x,y)->x+y) : buffer.toString());
 	}
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
 		g.setFont(font);
 		g.setColor(Color.GREEN);
-		int i = windowBuff.size();
-		for(String s : windowBuff) {
-			g.drawString(s, 0, window.getHeight() - 37*(i+1));
-			i--;
+		synchronized(this) {
+			int i = windowBuff.size();
+			for(String s : windowBuff) {
+				g.drawString(s, 0, window.getHeight() - 37*(i+2));
+				i--;
+			}
+			g.drawString(input.toString(), 0, window.getHeight() - 37*2);
 		}
-		g.drawString(">> " + buffer.toString(), 0, window.getHeight() - 50);
+		g.drawString(">> " + bufferNoPass(), 0, window.getHeight() - 50);
 		if(cursor) {
 			g.fillRect(cursorPos*12 + 36, window.getHeight() - 65, 12, 20);
 		}

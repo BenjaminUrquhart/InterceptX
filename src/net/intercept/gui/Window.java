@@ -2,7 +2,6 @@ package net.intercept.gui;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.io.InputStream;
 
 import javax.swing.JFrame;
 
@@ -27,7 +26,7 @@ public class Window extends JFrame {
 		this.requestFocus();
 		this.repaint();
 	}
-	protected InputStream getSTDIN() {
+	protected STDIN getSTDIN() {
 		return canvas.getSTDIN();
 	}
 }
